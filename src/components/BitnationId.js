@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Grid, Row, Col, Jumbotron, Image, Table, FormGroup, FormControl, ControlLabel, HelpBlock, Button } from 'react-bootstrap';
+import { Grid, Row, Col, Panel, Jumbotron, Image, Table, FormGroup, FormControl, ControlLabel, HelpBlock, Button } from 'react-bootstrap';
 
 class BitnationID extends Component {
 
@@ -19,7 +19,7 @@ class BitnationID extends Component {
     const reader = new FileReader();
     reader.onload = function (inputFile) {
       const parsedData = JSON.parse(inputFile.target.result);
-      this.setState({bitnationIdLoaded: true, bitnationIdData: parsedData});
+      this.setState({ bitnationIdLoaded: true, bitnationIdData: parsedData });
     }.bind(this);
     reader.readAsText(bitnationIdFile);
   }
@@ -37,37 +37,57 @@ class BitnationID extends Component {
             </Col>
             <Col md={6}>
               <h2>{bitnationIdData.userData.name}</h2>
+              <p>You were born <strong>{bitnationIdData.userData.dateOfBirth}</strong> and your height is <strong>{bitnationIdData.userData.height}cm</strong>.</p>
+              <p>The two people that witnessed the creation of your ID are <strong>{bitnationIdData.userData.witness1}</strong> and <strong>{bitnationIdData.userData.witness2}</strong>.</p>
+            </Col>
+          </Row>
+          <Row>
+            <Col xs={12}>
+              <h3>The cryptographic parts of your ID</h3>
+              <p>Firstly you have a unique public key people can use to verify your signature.</p>
+              <Panel header="Your public key">
+                {bitnationIdData.crypto.publicKey}
+              </Panel>
+              <p>Your secret key is encrypted. These are the fields we need to decrypt it together with your password.</p>
               <Table striped bordered condensed>
                 <tbody>
                   <tr>
-                    <td>Date of Birth</td><td>{bitnationIdData.userData.dateOfBirth}</td>
+                    <td>Encrypted secret key</td><td>{bitnationIdData.crypto.encryptedSecretKey}</td>
                   </tr>
                   <tr>
-                    <td>Height</td><td>{bitnationIdData.userData.height}cm</td>
+                    <td>Salt</td><td>{bitnationIdData.crypto.salt}</td>
                   </tr>
                   <tr>
-                    <td>1st witness</td><td>{bitnationIdData.userData.witness1}</td>
+                    <td>nonce</td><td>{bitnationIdData.crypto.nonce}</td>
                   </tr>
                   <tr>
-                    <td>2nd witness</td><td>{bitnationIdData.userData.witness2}</td>
+                    <td>logN</td><td>{bitnationIdData.crypto.logN}</td>
+                  </tr>
+                  <tr>
+                    <td>blockSize</td><td>{bitnationIdData.crypto.blockSize}</td>
                   </tr>
                 </tbody>
               </Table>
-              </Col>
-            </Row>
-          </Grid>
+              <h3>Your ID is stamped to the Horizon blockchain</h3>
+              <p>On the creation of your ID, your userdata was signed. That signature together with your public key was written to the Horizon blockchain.</p>
+              <Panel header="Your Horizon Transaction Number">
+                {bitnationIdData.hztx}
+              </Panel>
+            </Col>
+          </Row>
+        </Grid>
       );
     } else {
       content = (
         <form onSubmit={this.onSubmit.bind(this)}>
-        <FormGroup controlId="bitnationIdFile">
-        <ControlLabel>Upload your BITNATION ID</ControlLabel>
-        <FormControl type="file" required />
-        <HelpBlock>All ID's are named bitnation-id.json</HelpBlock>
-        </FormGroup>
-        <Button bsSize="large" bsStyle="primary" type="submit">
-        Submit
-        </Button>
+          <FormGroup controlId="bitnationIdFile">
+            <ControlLabel>Upload your BITNATION ID</ControlLabel>
+            <FormControl type="file" required />
+            <HelpBlock>All ID's are named bitnation-id.json</HelpBlock>
+          </FormGroup>
+          <Button bsSize="large" bsStyle="primary" type="submit">
+            Submit
+          </Button>
         </form>
       );
     }
@@ -75,17 +95,15 @@ class BitnationID extends Component {
     return (
       <Grid>
         <Jumbotron className="bitnation-id">
-          <h1>BITNATION ID</h1>
+          <h1>BITNATION ID<br /><small>The human readable version</small></h1>
           <hr />
           {content}
-      </Jumbotron>
+          <hr />
+          <p>App created by the team at <a href="http://www.bitnation.co">BITNATION</a>.</p>
+        </Jumbotron>
       </Grid>
     );
   }
 }
-
-BitnationID.propTypes = {
-  //saveData: React.PropTypes.func.isRequired
-};
 
 export default BitnationID;
