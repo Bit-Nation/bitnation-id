@@ -11,7 +11,8 @@ class BitnationID extends Component {
     this.state = {
       bitnationIdLoaded: false,
       showModal: false,
-      password: ''
+      password: '',
+      secretKey: null
     };
   }
 
@@ -39,8 +40,9 @@ class BitnationID extends Component {
     this.setState({ password: e.target.value });
   }
 
-  decryptEncryptedSecretKey() {
-    this.setState({ showModal: false });
+  decryptEncryptedSecretKey(e) {
+    e.preventDefault();
+    this.setState({ showModal: false, secretKey: 'some very clever secret' });
     console.log(this.state.password);
   }
 
@@ -48,7 +50,17 @@ class BitnationID extends Component {
     let content;
 
     if (this.state.bitnationIdLoaded) {
-      const { bitnationIdData } = this.state;
+      const { bitnationIdData, secretKey } = this.state;
+      const cryptoData = [
+        { name: 'Encrypted secret key', value: bitnationIdData.crypto.encryptedSecretKey },
+        { name: 'Salt', value: bitnationIdData.crypto.salt },
+        { name: 'nonce', value: bitnationIdData.crypto.nonce },
+        { name: 'logN', value: bitnationIdData.crypto.logN },
+        { name: 'blockSize', value: bitnationIdData.crypto.blockSize }
+      ];
+      if (secretKey) {
+        cryptoData.push({ name: 'Secret Key', value: secretKey });
+      }
       content = (
         <Grid>
           <Row>
@@ -92,21 +104,11 @@ class BitnationID extends Component {
               </Modal>
               <Table striped bordered condensed>
                 <tbody>
-                  <tr>
-                    <td>Encrypted secret key</td><td>{bitnationIdData.crypto.encryptedSecretKey}</td>
-                  </tr>
-                  <tr>
-                    <td>Salt</td><td>{bitnationIdData.crypto.salt}</td>
-                  </tr>
-                  <tr>
-                    <td>nonce</td><td>{bitnationIdData.crypto.nonce}</td>
-                  </tr>
-                  <tr>
-                    <td>logN</td><td>{bitnationIdData.crypto.logN}</td>
-                  </tr>
-                  <tr>
-                    <td>blockSize</td><td>{bitnationIdData.crypto.blockSize}</td>
-                  </tr>
+                  {cryptoData.map((data) =>
+                    <tr key={data.name}>
+                      <td>{data.name}</td><td>{data.value}</td>
+                    </tr>
+                  )}
                 </tbody>
               </Table>
               <h3>Your ID is stamped to the Horizon blockchain</h3>
