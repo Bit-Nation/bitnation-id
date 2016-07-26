@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Grid, Row, Col, Panel, Jumbotron, Image, Table, FormGroup, FormControl, ControlLabel, HelpBlock, Button } from 'react-bootstrap';
+import { Grid, Row, Col, Panel, Jumbotron, Image, Table, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Modal } from 'react-bootstrap';
 
 class BitnationID extends Component {
 
@@ -9,7 +9,9 @@ class BitnationID extends Component {
   constructor() {
     super();
     this.state = {
-      bitnationIdLoaded: false
+      bitnationIdLoaded: false,
+      showModal: false,
+      password: ''
     };
   }
 
@@ -22,6 +24,24 @@ class BitnationID extends Component {
       this.setState({ bitnationIdLoaded: true, bitnationIdData: parsedData });
     }.bind(this);
     reader.readAsText(bitnationIdFile);
+  }
+
+  revealModal(e) {
+    e.preventDefault();
+    this.setState({ showModal: true });
+  }
+
+  hideModal() {
+    this.setState({ showModal: false });
+  }
+
+  handlePasswordChange(e) {
+    this.setState({ password: e.target.value });
+  }
+
+  decryptEncryptedSecretKey() {
+    this.setState({ showModal: false });
+    console.log(this.state.password);
   }
 
   render() {
@@ -48,7 +68,28 @@ class BitnationID extends Component {
               <Panel header="Your public key">
                 {bitnationIdData.crypto.publicKey}
               </Panel>
-              <p>Your secret key is encrypted. These are the fields we need to decrypt it together with your password.</p>
+              <p>Your secret key is encrypted. These are the fields we need to decrypt it together with your password. <a href="#" onClick={this.revealModal.bind(this)}>Decrypt your secret key now</a>.</p>
+              <Modal show={this.state.showModal} onHide={this.hideModal.bind(this)}>
+                <Modal.Header closeButton>
+                  <Modal.Title>Decrypt Your Encrypted Secret Key</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <form onSubmit={this.decryptEncryptedSecretKey.bind(this)}>
+                    <FormGroup>
+                      <FormControl
+                        autoFocus
+                        type="password"
+                        value={this.state.password}
+                        placeholder="Enter your password"
+                        onChange={this.handlePasswordChange.bind(this)}
+                      />
+                    </FormGroup>
+                    <Button bsStyle="primary" type="submit">
+                      Decrypt Now
+                    </Button>
+                  </form>
+                </Modal.Body>
+              </Modal>
               <Table striped bordered condensed>
                 <tbody>
                   <tr>
