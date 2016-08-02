@@ -9,8 +9,10 @@
   "dependencies": {
     "bootstrap": "^3.3.6",
     "react": "^15.1.0",
+    "react-bootstrap": "^0.29.4",
     "react-dom": "^15.1.0",
-    "react-bootstrap": "^0.29.4"
+    "secretkey-encryption": "^0.3.4",
+    "tweetnacl-util": "^0.13.3"
   },
   "devDependencies": {
     "babel-core": "^6.9.1",

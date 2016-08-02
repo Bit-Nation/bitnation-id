@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { Grid, Row, Col, Panel, Jumbotron, Image, Table, FormGroup, FormControl, ControlLabel, HelpBlock, Button, Modal } from 'react-bootstrap';
+import secretkeyEncryption from 'secretkey-encryption';
+import tweetnaclUtil from 'tweetnacl-util';
 
 class BitnationID extends Component {
 
@@ -42,7 +44,25 @@ class BitnationID extends Component {
 
   decryptEncryptedSecretKey(e) {
     e.preventDefault();
-    this.setState({ showModal: false, secretKey: 'some very clever secret' });
+    this.setState({ showModal: false });
+    const base64cryptoData = this.state.bitnationIdData.crypto;
+    const cryptoDataAsArrays = {
+      encryptedSecretKey: tweetnaclUtil.decodeBase64(base64cryptoData.encryptedSecretKey),
+      salt: tweetnaclUtil.decodeBase64(base64cryptoData.salt),
+      nonce: tweetnaclUtil.decodeBase64(base64cryptoData.nonce),
+      logN: base64cryptoData.logN,
+      blockSize: base64cryptoData.blockSize
+    };
+
+    secretkeyEncryption.decryptEncryptedSecretKey(this.state.password, cryptoDataAsArrays)
+    .then((secretKey) => {
+      this.setState({ secretKey: tweetnaclUtil.encodeBase64(secretKey) });
+    })
+    .catch((error) => {
+      alert(`error: ${error}`);
+      console.log(`error: ${error}`);
+    });
+
     console.log(this.state.password);
   }
 
@@ -52,14 +72,18 @@ class BitnationID extends Component {
     if (this.state.bitnationIdLoaded) {
       const { bitnationIdData, secretKey } = this.state;
       const cryptoData = [
-        { name: 'Encrypted secret key', value: bitnationIdData.crypto.encryptedSecretKey },
         { name: 'Salt', value: bitnationIdData.crypto.salt },
         { name: 'nonce', value: bitnationIdData.crypto.nonce },
         { name: 'logN', value: bitnationIdData.crypto.logN },
         { name: 'blockSize', value: bitnationIdData.crypto.blockSize }
       ];
+
+      let decryptKeyMessage;
       if (secretKey) {
         cryptoData.push({ name: 'Secret Key', value: secretKey });
+      } else {
+        cryptoData.push({ name: 'Encrypted secret key', value: bitnationIdData.crypto.encryptedSecretKey });
+        decryptKeyMessage = <a href="#" onClick={this.revealModal.bind(this)}>Decrypt your secret key now</a>;
       }
       content = (
         <Grid>
@@ -80,7 +104,7 @@ class BitnationID extends Component {
               <Panel header="Your public key">
                 {bitnationIdData.crypto.publicKey}
               </Panel>
-              <p>Your secret key is encrypted. These are the fields we need to decrypt it together with your password. <a href="#" onClick={this.revealModal.bind(this)}>Decrypt your secret key now</a>.</p>
+              <p>Your secret key is encrypted. These are the fields we need to decrypt it together with your password. {decryptKeyMessage}</p>
               <Modal show={this.state.showModal} onHide={this.hideModal.bind(this)}>
                 <Modal.Header closeButton>
                   <Modal.Title>Decrypt Your Encrypted Secret Key</Modal.Title>
